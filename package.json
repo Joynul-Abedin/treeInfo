@@ -1,0 +1,23 @@
+{
+  "name": "plantinfo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/translate": "^8.0.2",
+    "@vitalets/google-translate-api": "^9.2.0",
+    "axios": "^1.6.2",
+    "express": "^4.18.2",
+    "google-translate-api": "^2.3.0",
+    "google-translate-open-api": "^1.3.7",
+    "mongoose": "^8.0.2",
+    "nodemon": "^3.0.2"
+  }
+}
