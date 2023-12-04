@@ -1,8 +1,7 @@
 const axios = require('axios');
 const Species = require('../models/species');
 const SpeciesBangla = require('../models/speciesBangla');
-const translate = require('google-translate-open-api').default;
-const createHttpProxyAgent = require('http-proxy-agent');
+const cheerio = require('cheerio'); // Add cheerio for HTML parsing
 
 
 // const translate = new Translate();
@@ -33,47 +32,14 @@ exports.getSpecies = async (req, res) => {
 };
 
 
-
-// async function translateToBangla(text) {
-//     try {
-//         let [translations] = await translate.translate(text, 'bn'); // 'bn' is the language code for Bangla
-//         return translations;
-//     } catch (error) {
-//         console.error('Error in translation:', error);
-//         return text; // return the original text if translation fails
-//     }
-// }
-
-
-
-// async function translateToBangla(text) {
-//     const agent = createHttpProxyAgent('http://103.152.112.162:80');
-
-//     try {
-//         const result = await translate(text, {
-//             to: 'bn',
-//             fetchOptions: { agent },
-//         });
-//         return result.text;
-//     } catch (error) {
-//         console.error('Error in translation:', error);
-//         return text; // Return the original text if translation fails
-//     }
-// }
-
-
 async function translateToBangla(text) {
     const options = {
     method: 'GET',
-    url: 'https://google-translator8.p.rapidapi.com/translate',
+    url: 'http://127.0.0.1:7071/translate',
     params: {
         word: text,
         source_lang: 'en',
         dest_lang: 'bn'
-    },
-    headers: {
-        'X-RapidAPI-Key': '53219388e7msh2e4d55bcec5365cp1b7e25jsn8d270797740b',
-        'X-RapidAPI-Host': 'google-translator8.p.rapidapi.com'
     }
     };
 
@@ -84,15 +50,6 @@ async function translateToBangla(text) {
     } catch (error) {
         console.error(error);
     }
-
-
-    // try {
-    //     const result = await translate(text, { to: 'bn' });
-    //     return result.data[0];
-    // } catch (error) {
-    //     console.error('Error in translation:', error);
-    //     return text; // Return the original text if translation fails
-    // }
 }
 
 
@@ -122,3 +79,53 @@ exports.translateAndStore = async (req, res) => {
     }
 };
 
+exports.fetchTreeWikiInfo = async (req, res) => {
+    const treeName = req.query.treeName
+    const url = `https://en.wikipedia.org/wiki/${treeName.replace(' ', '_')}`;
+
+    try {
+        const response = await axios.get(url);
+        const data = parseWikiData(response.data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching tree data from Wikipedia:', error);
+        throw error;
+    }
+}
+
+function parseWikiData(html) {
+    const $ = cheerio.load(html);
+    const intro = getIntroParagraph($);
+    const description = getSectionContent($, 'Description');
+    const ecology = getSectionContent($, 'Ecology');
+    const uses = getSectionContent($, 'Uses');
+
+    return {
+        introduction: intro,
+        description: description,
+        ecology: ecology,
+        uses: uses
+    };
+}
+
+function getIntroParagraph($) {
+    const infobox = $('table.infobox');
+    const introParagraph = infobox.length ? infobox.find('+ p').text().trim() : $('p').first().text().trim();
+    return introParagraph;
+}
+
+function getSectionContent($, title) {
+    const heading = $(`span#${title}`);
+    if (heading.length) {
+        let content = '';
+        let currentElem = heading.parent().next();
+
+        while (currentElem.length && !currentElem.is('h2')) {
+            content += currentElem.text();
+            currentElem = currentElem.next();
+        }
+
+        return content.trim();
+    }
+    return null;
+}
