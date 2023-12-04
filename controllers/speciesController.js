@@ -80,56 +80,88 @@ exports.translateAndStore = async (req, res) => {
 };
 
 exports.fetchTreeWikiInfo = async (req, res) => {
-    console.log('Fetching tree info from Wikipedia...');
-    const treeName = req.query.treeName
-    console.log(treeName);
-    const url = `https://en.wikipedia.org/wiki/${treeName.replace(' ', '_')}`;
+    const treeName = req.query.treeName;
+    const url = `https://en.wikipedia.org/wiki/${encodeURIComponent(treeName)}`;
+
+    const axiosConfig = {
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+        }
+    };
 
     try {
-        console.log(url);
-        const response = await axios.get(url);
+        const response = await axios.get(url, axiosConfig);
         const data = parseWikiData(response.data);
-        console.log(data);
         res.json(data);
     } catch (error) {
-        console.error('Error fetching tree data from Wikipedia:', error);
-        throw error;
+        if (error.response && error.response.status === 404) {
+            res.status(404).send(`Wikipedia page not found for ${treeName}`);
+        } else {
+            console.error('Error fetching tree data from Wikipedia:', error);
+            res.status(500).send('Internal Server Error');
+        }
     }
-}
+};
+
+
 
 function parseWikiData(html) {
     const $ = cheerio.load(html);
-    const intro = getIntroParagraph($);
-    const description = getSectionContent($, 'Description');
-    const ecology = getSectionContent($, 'Ecology');
-    const uses = getSectionContent($, 'Uses');
+    let intro, description, ecology, uses;
 
-    return {
-        introduction: intro,
-        description: description,
-        ecology: ecology,
-        uses: uses
-    };
+    try {
+        intro = getIntroParagraph($) || 'Introduction not available';
+    } catch (error) {
+        console.error('Error fetching Introduction:', error);
+        intro = 'Introduction not available';
+    }
+
+    try {
+        description = getSectionContent($, 'Description') || 'Description not available';
+    } catch (error) {
+        console.error('Error fetching Description:', error);
+        description = 'Description not available';
+    }
+
+    try {
+        ecology = getSectionContent($, 'Ecology') || 'Ecology information not available';
+    } catch (error) {
+        console.error('Error fetching Ecology:', error);
+        ecology = 'Ecology information not available';
+    }
+
+    try {
+        uses = getSectionContent($, 'Uses') || 'Uses information not available';
+    } catch (error) {
+        console.error('Error fetching Uses:', error);
+        uses = 'Uses information not available';
+    }
+
+    return { introduction: intro, description: description, ecology: ecology, uses: uses };
 }
+
+
 
 function getIntroParagraph($) {
     const infobox = $('table.infobox');
-    const introParagraph = infobox.length ? infobox.find('+ p').text().trim() : $('p').first().text().trim();
-    return introParagraph;
+    return infobox.length ? infobox.next('p').text().trim() : $('p').first().text().trim() || null;
 }
 
+
 function getSectionContent($, title) {
-    const heading = $(`span#${title}`);
+    let content = '';
+    const heading = $(`span#${title}`).parent();
+
     if (heading.length) {
-        let content = '';
-        let currentElem = heading.parent().next();
+        let currentElem = heading.next();
 
         while (currentElem.length && !currentElem.is('h2')) {
             content += currentElem.text();
             currentElem = currentElem.next();
         }
 
-        return content.trim();
+        return content.trim() || null;
+    } else {
+        return null;
     }
-    return null;
 }
