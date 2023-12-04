@@ -38,12 +38,16 @@ exports.translate = async (req, res) => {
 
     const options = {
         method: 'GET',
-        url: 'https://google-translate1.p.rapidapi.com/language/translate/v2',
-        params: {q: text, target: destLang, source: sourceLang},
+        url: 'https://google-translator8.p.rapidapi.com/translate',
+        params: {
+            word: text,
+            source_lang: sourceLang,
+            dest_lang: destLang
+          },
         headers: {
-          'x-rapidapi-key': '1c2e2a2b0cmsh7f3b7d3d5b1f0f7p1a8f0ejsn4f0d0e9d1b7b',
-          'x-rapidapi-host': 'google-translate1.p.rapidapi.com'
-        }
+            'X-RapidAPI-Key': '53219388e7msh2e4d55bcec5365cp1b7e25jsn8d270797740b',
+            'X-RapidAPI-Host': 'google-translator8.p.rapidapi.com'
+          }
     };
 
     try {
