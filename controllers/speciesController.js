@@ -31,6 +31,31 @@ exports.getSpecies = async (req, res) => {
     }
 };
 
+exports.translate = async (req, res) => {
+    const text = req.query.word;
+    const sourceLang = req.query.source_lang;
+    const destLang = req.query.dest_lang;
+
+    const options = {
+        method: 'GET',
+        url: 'https://google-translate1.p.rapidapi.com/language/translate/v2',
+        params: {q: text, target: destLang, source: sourceLang},
+        headers: {
+          'x-rapidapi-key': '1c2e2a2b0cmsh7f3b7d3d5b1f0f7p1a8f0ejsn4f0d0e9d1b7b',
+          'x-rapidapi-host': 'google-translate1.p.rapidapi.com'
+        }
+    };
+
+    try {
+        const response = await axios.request(options);
+        console.log(response.data);
+        res.json(response.data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send(error.message);
+    }
+}
+
 
 async function translateToBangla(text) {
     const options = {
