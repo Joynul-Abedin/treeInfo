@@ -5,6 +5,6 @@ const { getSpecies, translateAndStore, fetchTreeWikiInfo } = require('../control
 
 router.get('/', getSpecies);
 router.get('/bangla', translateAndStore);
-router.get('/plantinfo', fetchTreeWikiInfo)
+router.get('/plantinfo', fetchTreeWikiInfo);
 
 module.exports = router;

@@ -80,13 +80,17 @@ exports.translateAndStore = async (req, res) => {
 };
 
 exports.fetchTreeWikiInfo = async (req, res) => {
+    console.log('Fetching tree info from Wikipedia...');
     const treeName = req.query.treeName
+    console.log(treeName);
     const url = `https://en.wikipedia.org/wiki/${treeName.replace(' ', '_')}`;
 
     try {
+        console.log(url);
         const response = await axios.get(url);
         const data = parseWikiData(response.data);
-        return data;
+        console.log(data);
+        res.json(data);
     } catch (error) {
         console.error('Error fetching tree data from Wikipedia:', error);
         throw error;
