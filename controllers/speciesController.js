@@ -1,6 +1,6 @@
 const axios = require('axios');
-const Species = require('../models/speciesBangla');
-const SpeciesBangla = require('../models/species');
+const Species = require('../models/species');
+const SpeciesBangla = require('../models/speciesBangla');
 const cheerio = require('cheerio'); // Add cheerio for HTML parsing
 
 
